@@ -1,6 +1,5 @@
 require('dotenv').config()
-const port = process.env.PORT
-const mangodb = process.env.MONGODB
+const PORT = process.env.PORT || 3001
 
 const express = require('express')
 const mongoose = require('mongoose')
@@ -14,7 +13,7 @@ const Hackmd = require('./models/Hackmd')
 app.use(express.json())
 app.use(cors())
 
-mongoose.connect(mangodb, {
+mongoose.connect(process.env.MONGODB, {
     useNewUrlParser: true,
 })
 
@@ -33,7 +32,7 @@ app.post('/add', async (req, res) => {
     }
 })
 
-app.get("/get", async (req, res) => {
+app.get("/", async (req, res) => {
     try {
         const query = await HackmdModel.find({}).exec()
         res.send(query)
@@ -63,6 +62,6 @@ app.delete("/delete/:id", async (req, res) => {
     res.send("delete")
 })
 
-app.listen(port, () => {
-    console.log(`Server running on ${port} ...`)
+app.listen(PORT, () => {
+    console.log(`Server running on ${PORT} ...`)
 })
