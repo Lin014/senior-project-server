@@ -8,14 +8,19 @@ const app = express()
 
 const HackmdModel = require("./models/Hackmd")
 const { Query } = require('mongoose')
-const Hackmd = require('./models/Hackmd')
 
 app.use(express.json())
 app.use(cors())
 
-mongoose.connect(process.env.MONGODB, {
-    useNewUrlParser: true,
-})
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGODB)
+        console.log(`MongoDB Connected: ${conn.connection.host}`)
+    } catch (err) {
+        console.log(err)
+        process.exit(1)
+    }
+}
 
 app.post('/add', async (req, res) => {
 
@@ -23,9 +28,13 @@ app.post('/add', async (req, res) => {
     const author = req.body.author
     const url = req.body.url
 
-    const hackmd = new HackmdModel({ title: title, author: author, url: url })
+    // const hackmd = new HackmdModel({ title: title, author: author, url: url })
     try {
-        await hackmd.save()
+        await HackmdModel.insertMany([
+            {
+                title: title, author: author, url: url
+            }
+        ])
         res.send("insert data")
     } catch (err) {
         console.log(err)
@@ -62,6 +71,8 @@ app.delete("/delete/:id", async (req, res) => {
     res.send("delete")
 })
 
-app.listen(PORT, () => {
-    console.log(`Server running on ${PORT} ...`)
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on ${PORT} ...`)
+    })
 })
