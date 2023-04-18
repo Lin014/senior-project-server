@@ -7,10 +7,11 @@ const cors = require('cors')
 const app = express()
 
 const HackmdModel = require("./models/Hackmd")
-const { Query } = require('mongoose')
 
 app.use(express.json())
 app.use(cors())
+
+mongoose.set('strictQuery', false)
 
 const connectDB = async () => {
     try {
@@ -41,7 +42,7 @@ app.post('/add', async (req, res) => {
     }
 })
 
-app.get("/", async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         const query = await HackmdModel.find({}).exec()
         res.send(query)
@@ -50,7 +51,7 @@ app.get("/", async (req, res) => {
     }
 })
 
-app.put("/update", async (req, res) => {
+app.put('/update', async (req, res) => {
     const id = req.body.id
     const newTitle = req.body.newTitle
     try {
@@ -65,7 +66,7 @@ app.put("/update", async (req, res) => {
     }
 })
 
-app.delete("/delete/:id", async (req, res) => {
+app.delete('/delete/:id', async (req, res) => {
     const id = req.params.id
     await HackmdModel.findByIdAndDelete(id)
     res.send("delete")
