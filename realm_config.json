@@ -1,8 +1,0 @@
-{
-    "app_id": "senior-project-mzhhc",
-    "config_version": 20210101,
-    "name": "senior-project",
-    "location": "US-VA",
-    "provider_region": "aws-us-east-1",
-    "deployment_model": "LOCAL"
-}
