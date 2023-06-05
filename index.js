@@ -7,6 +7,8 @@ const cors = require('cors')
 const app = express()
 
 const HackmdModel = require("./models/Hackmd")
+const MenuCategories = require('./models/MenuCategories')
+const MenuItems = require('./models/MenuItems')
 
 app.use(express.json())
 app.use(cors())
@@ -69,6 +71,52 @@ app.put('/update', async (req, res) => {
 app.delete('/delete/:id', async (req, res) => {
     const id = req.params.id
     await HackmdModel.findByIdAndDelete(id)
+    res.send("delete")
+})
+
+app.get('/turkeyrice/menucategories/', async (req, res) => {
+    try {
+        const query = await MenuCategories.find({}).exec()
+        res.send(query)
+    } catch (err) {
+        res.send(err)
+    }
+})
+
+app.get('/turkeyrice/menuitems/', async (req, res) => {
+    try {
+        const query = await MenuItems.find({}).exec()
+        res.send(query)
+    } catch (err) {
+        res.send(err)
+    }
+})
+
+app.post('/turkeyrice/menuitems/add', async (req, res) => {
+
+    const item_name = req.body.item_name
+    const description = req.body.description
+    const unit_price = req.body.unit_price
+    const category_id = req.body.category_id
+
+    try {
+        await MenuItems.insertMany([
+            {
+                item_name: item_name,
+                description: description,
+                unit_price: unit_price,
+                category_id: category_id
+            }
+        ])
+        res.send("insert data")
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+app.delete('/turkeyrice/menuitems/delete/:id', async (req, res) => {
+    const id = req.params.id
+    await MenuItems.findByIdAndDelete(id)
     res.send("delete")
 })
 
