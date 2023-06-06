@@ -114,6 +114,23 @@ app.post('/turkeyrice/menuitems/add', async (req, res) => {
     }
 })
 
+app.put('/turkeyrice/menuitems/update', async (req, res) => {
+    const id = req.body.id
+    const item_name = req.body.item_name
+    const description = req.body.description
+    const category_id = req.body.category_id
+    const unit_price = req.body.unit_price
+    
+    try {
+        await MenuItems.updateMany({_id: id}, { item_name: item_name, description: description, unit_price: unit_price, category_id: category_id }, { new: true })
+            .then((result) => {
+                res.send(result)
+            })
+    } catch (err) {
+        res.send(err)
+    }
+})
+
 app.delete('/turkeyrice/menuitems/delete/:id', async (req, res) => {
     const id = req.params.id
     await MenuItems.findByIdAndDelete(id)
