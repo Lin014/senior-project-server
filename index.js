@@ -9,6 +9,9 @@ const app = express()
 const HackmdModel = require("./models/Hackmd")
 const MenuCategories = require('./models/MenuCategories')
 const MenuItems = require('./models/MenuItems')
+const Orders = require('./models/Order')
+const OrderItems = require('./models/OrderItems')
+const OrderType = require('./models/OrderType')
 
 app.use(express.json())
 app.use(cors())
@@ -20,7 +23,7 @@ const connectDB = async () => {
         const conn = await mongoose.connect(process.env.MONGODB)
         console.log(`MongoDB Connected: ${conn.connection.host}`)
     } catch (err) {
-        console.log(err)
+        console.log({ "err": err })
         process.exit(1)
     }
 }
@@ -40,7 +43,7 @@ app.post('/add', async (req, res) => {
         ])
         res.send("insert data")
     } catch (err) {
-        console.log(err)
+        console.log({ "err": err })
     }
 })
 
@@ -49,7 +52,7 @@ app.get('/', async (req, res) => {
         const query = await HackmdModel.find({}).exec()
         res.send(query)
     } catch (err) {
-        res.send(err)
+        res.send({ "err": err })
     }
 })
 
@@ -64,7 +67,7 @@ app.put('/update', async (req, res) => {
                 res.send(result)
             })
     } catch (err) {
-        res.send(err)
+        res.send({ "err": err })
     }
 })
 
@@ -79,7 +82,7 @@ app.get('/turkeyrice/menucategories/', async (req, res) => {
         const query = await MenuCategories.find({}).exec()
         res.send(query)
     } catch (err) {
-        res.send(err)
+        res.send({ "err": err })
     }
 })
 
@@ -88,7 +91,7 @@ app.get('/turkeyrice/menuitems/', async (req, res) => {
         const query = await MenuItems.find({}).exec()
         res.send(query)
     } catch (err) {
-        res.send(err)
+        res.send({ "err": err })
     }
 })
 
@@ -110,7 +113,7 @@ app.post('/turkeyrice/menuitems/add', async (req, res) => {
         ])
         res.send("insert data")
     } catch (err) {
-        console.log(err)
+        console.log({ "err": err })
     }
 })
 
@@ -120,14 +123,14 @@ app.put('/turkeyrice/menuitems/update', async (req, res) => {
     const description = req.body.description
     const category_id = req.body.category_id
     const unit_price = req.body.unit_price
-    
+
     try {
-        await MenuItems.updateMany({_id: id}, { item_name: item_name, description: description, unit_price: unit_price, category_id: category_id }, { new: true })
+        await MenuItems.updateMany({ _id: id }, { item_name: item_name, description: description, unit_price: unit_price, category_id: category_id }, { new: true })
             .then((result) => {
                 res.send(result)
             })
     } catch (err) {
-        res.send(err)
+        res.send({ "err": err })
     }
 })
 
@@ -135,6 +138,78 @@ app.delete('/turkeyrice/menuitems/delete/:id', async (req, res) => {
     const id = req.params.id
     await MenuItems.findByIdAndDelete(id)
     res.send("delete")
+})
+
+app.get('/turkeyrice/order/todayordernumber', async (req, res) => {
+    const today = new Date();
+    const year = today.getFullYear(); // 获取年份
+    const month = today.getMonth() + 1; // 获取月份，需要加 1，因为月份从 0 开始计数
+    const day = today.getDate(); // 获取日期
+    const dateStr = year + '-' + month + '-' + day;
+
+    try {
+        const count = await Orders.countDocuments({ order_date: dateStr });
+        res.send({ 'count': count })
+    } catch (err) {
+        res.send({ "err": err })
+    }
+})
+
+app.get('/turkeyrice/ordertype', async (req, res) => {
+    try {
+        const query = await OrderType.find({}).exec()
+        res.send(query)
+    } catch (err) {
+        res.send({ "err": err })
+    }
+})
+
+app.post('/turkeyrice/order/add', async (req, res) => {
+
+    const today = new Date();
+    const year = today.getFullYear(); // 获取年份
+    const month = today.getMonth() + 1; // 获取月份，需要加 1，因为月份从 0 开始计数
+    const day = today.getDate(); // 获取日期
+    const dateStr = year.toString() + '-' + month.toString() + '-' + day.toString();
+
+    const order_no = req.body.order_no
+    const order_date = dateStr
+    const total_price = req.body.total_price
+    const payment_status = req.body.payment_status
+    const order_status = req.body.order_status
+    const type = req.body.type
+    const items = req.body.items
+
+    try {
+        await Orders.insertMany([
+            {
+                order_no: order_no,
+                order_date: order_date,
+                total_price: total_price,
+                payment_status: payment_status,
+                order_status: order_status,
+                type: type
+            }
+        ])
+
+        const result = await Orders.find({ order_no: order_no, order_date: order_date }).exec();
+
+        const updateItems = []
+        items.forEach(element => {
+            updateItems.push({
+                name: element.name,
+                quantity: element.quantity,
+                unit_price: element.unit_price,
+                order_id: result[0]._id
+            })
+        });
+        console.log(updateItems)
+        await OrderItems.insertMany(updateItems)
+
+        res.send("insert data")
+    } catch (err) {
+        console.log({ "err": err })
+    }
 })
 
 connectDB().then(() => {
