@@ -164,6 +164,24 @@ app.get('/turkeyrice/ordertype', async (req, res) => {
     }
 })
 
+app.get('/turkeyrice/order/', async (req, res) => {
+    try {
+        const query = await Orders.find({}).exec()
+        res.send(query)
+    } catch (err) {
+        res.send({ "err": err })
+    }
+})
+
+app.get('/turkeyrice/orderitem/', async (req, res) => {
+    try {
+        const query = await OrderItems.find({}).exec()
+        res.send(query)
+    } catch (err) {
+        res.send({ "err": err })
+    }
+})
+
 app.post('/turkeyrice/order/add', async (req, res) => {
 
     const today = new Date();
@@ -209,6 +227,21 @@ app.post('/turkeyrice/order/add', async (req, res) => {
         res.send("insert data")
     } catch (err) {
         console.log({ "err": err })
+    }
+})
+
+app.put('/turkeyrice/order/update', async (req, res) => {
+    const id = req.body.id
+    const payment_status = req.body.payment_status
+    const order_status = req.body.order_status
+
+    try {
+        await Orders.updateMany({ _id: id }, { payment_status: payment_status, order_status: order_status }, { new: true })
+            .then((result) => {
+                res.send(result)
+            })
+    } catch (err) {
+        res.send({ "err": err })
     }
 })
 
